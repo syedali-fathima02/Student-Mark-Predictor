@@ -13,7 +13,7 @@ A Machine Learning project built with **Python**, **pandas**, **numpy**, **matpl
   4. `Previous Marks` (40 to 98)
   5. `Marks Scored` (Target variable, 10 to 100)
 - 🤖 **Model Comparison (Simple vs. Multiple Linear Regression):** Demonstrates significant performance gains when upgrading from 1 feature to 4 features.
-- 🏆 **Feature Importance Analysis:** Standardized beta coefficient evaluation to accurately determine **which feature affects marks the most**.
+- 🏆 **Feature Importance Analysis:** Standardized beta coefficients compare feature weights in this sample model; they do not prove what causes marks to change.
 - 🖥️ **Interactive Streamlit App (`app.py`):** Real-time prediction sliders for all four features, model comparison cards, LaTeX equation rendering, and feature impact charts.
 - 💻 **CLI & Web API (`predict.py`, `server.py`, `index.html`):** Multi-feature command line predictor and Glassmorphism web application with Chart.js visualization.
 
@@ -31,18 +31,18 @@ Evaluated on an 80/20 train/test split (80 train samples, 20 test samples):
 
 ---
 
-## 🏆 Feature Importance Ranking (Which Feature Affects Marks the Most?)
+## 🏆 Feature Weight Ranking in This Sample Model
 
-Standardized beta coefficients measure the relative contribution of each feature to the predicted exam score:
+Standardized beta coefficients compare feature weights in this sample model. They do not measure causal effects or percentages of marks:
 
-| Rank | Feature | Raw Coefficient ($w$) | Standardized Beta | Relative Impact (%) |
+| Rank | Feature | Raw Coefficient ($w$) | Standardized Beta | Note |
 | :---: | :--- | :---: | :---: | :---: |
-| **1 🥇** | **`Hours Studied`** | **`4.1492`** | **`10.8970`** | **`51.1%` (Most Impactful)** |
-| **2 🥈** | **`Previous Marks`** | `0.3411` | `5.5484` | **`26.0%`** |
-| **3 🥉** | **`Attendance Percentage`** | `0.2525` | `3.2969` | **`15.4%`** |
-| **4** | **`Sleep Hours`** | `1.0099` | `1.5978` | **`7.5%`** |
+| **1 🥇** | **`Hours Studied`** | **`4.1492`** | **`10.8970`** | Largest standardized coefficient |
+| **2 🥈** | **`Previous Marks`** | `0.3411` | `5.5484` | Sample-model weight |
+| **3 🥉** | **`Attendance Percentage`** | `0.2525` | `3.2969` | Sample-model weight |
+| **4** | **`Sleep Hours`** | `1.0099` | `1.5978` | Sample-model weight |
 
-> **Key Finding:** **Hours Studied** is the single most influential factor, driving **51.1%** of the predicted mark variation, followed by **Previous Marks** (26.0%).
+> **Key Finding:** Hours Studied has the largest standardized coefficient in this sample model. These weights do not show how much a feature causes marks to change.
 
 ---
 
