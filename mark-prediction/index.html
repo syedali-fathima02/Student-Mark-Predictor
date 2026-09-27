@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Linear Regression | Student Marks Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-card: rgba(23, 32, 54, 0.7);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-purple: #818cf8;
+            --accent-emerald: #34d399;
+            --accent-amber: #fbbf24;
+            --shadow-glow: 0 10px 30px -10px rgba(56, 189, 248, 0.3);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(129, 140, 248, 0.12) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+        }
+
+        .container { max-width: 1280px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 2rem; }
+
+        header h1 {
+            font-size: 2.3rem; font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p { color: var(--text-muted); font-size: 1.05rem; }
+
+        .sample-badge {
+            display: inline-block; background: rgba(245, 158, 11, 0.2); color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 12px;
+            font-size: 0.85rem; font-weight: 600; margin-top: 6px;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            backdrop-filter: blur(16px); border-radius: 20px; padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .card-header {
+            font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem;
+            display: flex; align-items: center; justify-content: space-between; color: var(--text-main);
+        }
+
+        .slider-group { margin-bottom: 1.1rem; }
+        .slider-header { display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-weight: 600; font-size: 0.9rem; }
+        .val-badge { color: var(--accent-blue); font-weight: 700; }
+
+        input[type=range] { width: 100%; height: 6px; border-radius: 5px; background: #1e293b; accent-color: var(--accent-blue); }
+
+        .result-box {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(129, 140, 248, 0.15) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 1.25rem;
+            text-align: center; margin-top: 1.25rem;
+        }
+
+        .result-score { font-size: 3.2rem; font-weight: 800; color: #38bdf8; margin: 0.25rem 0; letter-spacing: -1px; }
+        .result-grade { display: inline-block; background: rgba(56, 189, 248, 0.2); color: #7dd3fc; padding: 0.3rem 0.9rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
+
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        @media (max-width: 768px) { .metrics-grid { grid-template-columns: repeat(1, 1fr); } }
+
+        .metric-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 1.25rem; text-align: center; }
+        .metric-val { font-size: 1.75rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.25rem; }
+        .metric-lbl { font-size: 0.85rem; color: var(--text-muted); }
+        .metric-sub { font-size: 0.75rem; color: #34d399; margin-top: 4px; }
+
+        .table-container { overflow-x: auto; max-height: 320px; border-radius: 12px; border: 1px solid var(--border-card); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th { background: rgba(15, 23, 42, 0.9); color: var(--text-muted); padding: 0.65rem 0.85rem; font-weight: 600; position: sticky; top: 0; }
+        td { padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--border-card); }
+        tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        canvas { max-height: 300px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Multiple Linear Regression Student Predictor</h1>
+            <p>Predicting exam marks using Study Hours, Sleep Hours, Attendance %, and Previous Marks</p>
+            <div class="sample-badge">📌 Sample Dataset (100 Rows)</div>
+        </header>
+
+        <!-- Model Comparison Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-lbl">Multiple LR R² Variance Score</div>
+                <div class="metric-val" id="metric-r2">0.9465 (94.7%)</div>
+                <div class="metric-sub">▲ +23.1% vs 1-Feature Model (71.6%)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-lbl">Mean Absolute Error (MAE)</div>
+                <div class="metric-val" id="metric-mae">2.52 marks</div>
+                <div class="metric-sub">▼ -3.61 marks vs 1-Feature Model (6.13)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-lbl">Root Mean Sq Error (RMSE)</div>
+                <div class="metric-val" id="metric-rmse">3.11 marks</div>
+                <div class="metric-sub">▼ -4.05 marks vs 1-Feature Model (7.16)</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <!-- Left: Interactive Predictor Controls -->
+            <div class="card">
+                <div class="card-header">⚡ Predict Exam Score (4 Features)</div>
+                
+                <div class="slider-group">
+                    <div class="slider-header"><span>1. Hours Studied</span><span class="val-badge"><span id="val-hours">6.5</span> hrs</span></div>
+                    <input type="range" id="hours" min="0" max="12" step="0.25" value="6.5">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>2. Sleep Hours</span><span class="val-badge"><span id="val-sleep">7.0</span> hrs</span></div>
+                    <input type="range" id="sleep" min="0" max="12" step="0.25" value="7.0">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>3. Attendance %</span><span class="val-badge"><span id="val-att">80</span> %</span></div>
+                    <input type="range" id="attendance" min="0" max="100" step="1" value="80">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>4. Previous Marks</span><span class="val-badge"><span id="val-prev">70</span> / 100</span></div>
+                    <input type="range" id="prev_marks" min="0" max="100" step="1" value="70">
+                </div>
+
+                <div class="result-box">
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">Predicted Exam Score</div>
+                    <div class="result-score" id="res-score">66.44%</div>
+                    <div class="result-grade" id="res-grade">Grade: C (Satisfactory)</div>
+                </div>
+            </div>
+
+            <!-- Right: Feature Importance Breakdown -->
+            <div class="card">
+                <div class="card-header">🏆 Feature Importance Breakdown</div>
+                <canvas id="importanceChart"></canvas>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 10px;">
+                    <strong>Most Impactful Feature:</strong> <span style="color: #38bdf8;" id="top-feat-name">Hours Studied</span> (contributes <span id="top-feat-pct">51.1%</span> to score variation).
+                </div>
+            </div>
+        </div>
+
+        <!-- Dataset & Summary -->
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">📋 Sample Student Dataset (100 Rows)</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th><th>Hours</th><th>Sleep</th><th>Attendance</th><th>Prev Marks</th><th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataset-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">🔍 Multiple Linear Regression Equation</div>
+                <div style="line-height: 1.8; font-size: 0.9rem;">
+                    <p><strong>Formula:</strong></p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 0.85rem; border-radius: 10px; font-family: monospace; font-size: 0.85rem; color: #38bdf8; margin: 0.5rem 0;" id="formula-text">
+                        Marks = (4.1492 × Hours) + (1.0099 × Sleep) + (0.2525 × Att) + (0.3411 × Prev) - 16.2488
+                    </div>
+                    <p><strong>Null Value Check:</strong> <span style="color: var(--accent-emerald);">0 Nulls (Clean Sample Data)</span></p>
+                    <p><strong>Training Set:</strong> 80 samples (80%) | <strong>Test Set:</strong> 20 samples (20%)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rawCoefs = { "Hours Studied": 4.1492, "Sleep Hours": 1.0099, "Attendance Percentage": 0.2525, "Previous Marks": 0.3411 };
+        let intercept = -16.2488;
+        let dataset = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupInputs();
+            fetchServerData();
+            calculate();
+        });
+
+        function setupInputs() {
+            ['hours', 'sleep', 'attendance', 'prev_marks'].forEach(id => {
+                const slider = document.getElementById(id);
+                slider.addEventListener('input', (e) => {
+                    document.getElementById(`val-${id === 'attendance' ? 'att' : (id === 'prev_marks' ? 'prev' : id)}`).innerText = e.target.value;
+                    calculate();
+                });
+            });
+        }
+
+        function calculate() {
+            const h = parseFloat(document.getElementById('hours').value);
+            const s = parseFloat(document.getElementById('sleep').value);
+            const a = parseFloat(document.getElementById('attendance').value);
+            const p = parseFloat(document.getElementById('prev_marks').value);
+
+            const raw = (rawCoefs['Hours Studied'] * h) + (rawCoefs['Sleep Hours'] * s) + (rawCoefs['Attendance Percentage'] * a) + (rawCoefs['Previous Marks'] * p) + intercept;
+            const clamped = Math.max(0, Math.min(100, raw));
+
+            document.getElementById('res-score').innerText = clamped.toFixed(2) + '%';
+            
+            let grade = 'F (Needs Improvement)';
+            if (clamped >= 90) grade = 'A+ (Outstanding)';
+            else if (clamped >= 80) grade = 'A (Excellent)';
+            else if (clamped >= 70) grade = 'B (Good)';
+            else if (clamped >= 60) grade = 'C (Satisfactory)';
+            else if (clamped >= 50) grade = 'D (Pass)';
+
+            document.getElementById('res-grade').innerText = `Grade: ${grade}`;
+        }
+
+        function fetchServerData() {
+            fetch('/api/info')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.raw_coefs) rawCoefs = data.raw_coefs;
+                    if (data.intercept) intercept = data.intercept;
+                    if (data.dataset) { dataset = data.dataset; populateTable(); }
+                    if (data.feature_impact) initChart(data.feature_impact);
+                    calculate();
+                })
+                .catch(err => {
+                    console.log('Using local defaults: ', err);
+                    initChart([
+                        { feature: 'Hours Studied', impact_pct: 51.1 },
+                        { feature: 'Previous Marks', impact_pct: 26.0 },
+                        { feature: 'Attendance Percentage', impact_pct: 15.4 },
+                        { feature: 'Sleep Hours', impact_pct: 7.5 }
+                    ]);
+                });
+        }
+
+        function populateTable() {
+            const tbody = document.getElementById('dataset-body');
+            tbody.innerHTML = '';
+            dataset.forEach((r, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${i+1}</td><td>${r['Hours Studied']}h</td><td>${r['Sleep Hours']}h</td><td>${r['Attendance Percentage']}%</td><td>${r['Previous Marks']}</td><td><strong>${r['Marks Scored']}</strong></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function initChart(impactData) {
+            const ctx = document.getElementById('importanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: impactData.map(d => d.feature),
+                    datasets: [{
+                        label: 'Feature Impact (%)',
+                        data: impactData.map(d => d.impact_pct),
+                        backgroundColor: ['#38bdf8', '#34d399', '#818cf8', '#fbbf24'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { display: false }, ticks: { color: '#f8fafc' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
